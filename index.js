@@ -19,10 +19,27 @@ function getFeatureStyle(feature) {
         else {
             return { color: 'black', fillColor: '#3d3d3d', weight: 1, opacity: 1, fillOpacity: 1 };
         }
-    }
+};
+
+
+function onEachFeature(feature, layer) {
+    layer.bindPopup('Número de proyectos: ' + feature.properties.proyectos);
+};
+
+/*function filtro(feature, layer) {
+        const value = feature.properties.codigo_dist;
+
+        if (value == 60110) {
+            return false;
+        } else {
+            return true;
+        }
+};*/
 
 fetch("./geojson/dist.json")
 .then(res => res.json())
 .then(data => {L.geoJson(data,{
-    style: getFeatureStyle
-}).addTo(map);})
+    style: getFeatureStyle,
+    onEachFeature: onEachFeature
+    //filter: filtro
+}).addTo(map);});
