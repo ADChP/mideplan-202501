@@ -1,3 +1,10 @@
+/*
+Elaborado por Andrés David Chavarría Palma
+Área de planificación regional
+Ministerio de Planificación Regional
+*Uso interno*
+*/
+
 //1. Inicializacion de mapa
 var map = L.map('map');
 map.setMaxZoom(13);
@@ -35,7 +42,10 @@ boton1.onAdd = () => {
 };
 boton1.addTo(map)
 
-//5. Distritos
+//5. Panel de control de capas
+control_capas = L.control.layers(null,null,{collapsed:false}).addTo(map);
+
+//6. Distritos
 function estilo_gj1(feature) {
         const value = feature.properties.proyectos;
         if (value > 20) {
@@ -48,8 +58,7 @@ function estilo_gj1(feature) {
             return { color: 'black', fillColor: '#bdc9e1', weight: 1, opacity: 1, fillOpacity: 1 };
         } else if (value > 0) {
             return { color: 'black', fillColor: '#f1eef6', weight: 1, opacity: 1, fillOpacity: 1 };
-        }
-        else {
+        } else {
             return { color: 'black', fillColor: '#3d3d3d', weight: 1, opacity: 1, fillOpacity: 1 };
         }
 };
@@ -79,10 +88,11 @@ capa = L.geoJson(data,{
 
 });
 
-    // 5.1 Leyenda
+    // 6.1 Leyenda
 const legend = L.control({position: 'bottomright'});
 legend.onAdd = () => {
     const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML += 'Proyectos de inversión pública' + '<br>' + '<br>';
     div.innerHTML += '<i style="background:#045a8d"></i> ' + '21 o más proyectos' + '<br>';
     div.innerHTML += '<i style="background:#2b8cbe"></i> ' + '16 - 20' + '<br>';
     div.innerHTML += '<i style="background:#74a9cf"></i> ' + '11 - 15' + '<br>';
@@ -93,21 +103,33 @@ legend.onAdd = () => {
 };
 legend.addTo(map);
 
-// 6. Regiones
+const legend2 = L.control({position: 'bottomright'});
+legend2.onAdd = () => {
+    const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML += 'IDS (Área de desarrollo relativo)' + '<br>' + '<br>';
+    div.innerHTML += '<i style="background:#1d8026"></i> ' + 'Mayor' + '<br>';
+    div.innerHTML += '<i style="background:#83daaa"></i> ' + 'Medio' + '<br>';
+    div.innerHTML += '<i style="background:#f4d1c7"></i> ' + 'Bajo' + '<br>';
+    div.innerHTML += '<i style="background:#fa161e"></i> ' + 'Muy bajo' + '<br>';
+    div.innerHTML += '<i style="background:#3d3d3d"></i> ' + 'No aplica';
+    return div
+};
+legend2.addTo(map);
+
+// 7. Regiones
 fetch("./geojson/regiones.json")
 .then(res => res.json())
 .then(data => {
 
 capa = L.geoJson(data,
     {
-    color: 'red',
+    color: '#cdda0f',
     fillOpacity: 0,
     pane:'regiones'
     }).addTo(map);
-
 });
 
-//7. Poblados
+//8. Poblados
 const puntos_simbologia = {
     radius: 5,
     fillColor: "#000",
@@ -130,5 +152,50 @@ capa = L.geoJson(data,{
         layer.bindTooltip(feature.properties.NOMBRE)
     }
 }).addTo(map);
+
+});
+
+//9. IDS
+function estilo_gj2(feature) {
+        const value2 = feature.properties.ard;
+        if (value2 == 'Mayor') {
+            return { color: 'black', fillColor: '#1d8026', weight: 1, opacity: 1, fillOpacity: 1 };
+        } else if (value2 == 'Medio') {
+            return { color: 'black', fillColor: '#83daaa', weight: 1, opacity: 1, fillOpacity: 1 };
+        } else if (value2 == 'Bajo') {
+            return { color: 'black', fillColor: '#f4d1c7', weight: 1, opacity: 1, fillOpacity: 1 };
+        } else if (value2 == 'Muy bajo') {
+            return { color: 'black', fillColor: '#fa161e', weight: 1, opacity: 1, fillOpacity: 1 };
+        } else {
+            return { color: 'black', fillColor: '#3d3d3d', weight: 1, opacity: 1, fillOpacity: 1 };
+        }
+};
+
+function oef_gj2(feature, layer) {
+    layer.bindPopup('Área de desarrollo relativo: ' + 
+        feature.properties.ard +
+        '<br>' +
+        'Provincia: ' +
+        feature.properties.provincia +
+        '<br>' +
+        'Cantón: ' +
+        feature.properties.canton +
+        '<br>' +
+        'Distrito: ' +
+        feature.properties.distrito);
+};
+
+fetch("./geojson/ids.geojson")
+.then(res => res.json())
+.then(data => {
+
+capa = L.geoJson(data,
+    {
+        style:estilo_gj2,
+        onEachFeature: oef_gj2
+    }
+);
+
+control_capas.addOverlay(capa, 'IDS 2023');
 
 });
